@@ -30,8 +30,8 @@ func main() {
 	blogService := service.NewBlogService(repository)
 	blogController := controller.NewBlogController(blogService)
 	adminUsername := envOrDefault("BLOG_ADMIN_USER", "admin")
-	adminPassword := envOrDefault("BLOG_ADMIN_PASSWORD", "change-this-password")
-	adminSecret := envOrDefault("BLOG_ADMIN_SECRET", "change-this-secret")
+	adminPassword := envRequired("BLOG_ADMIN_PASSWORD")
+	adminSecret := envRequired("BLOG_ADMIN_SECRET")
 	adminCookieName := envOrDefault("BLOG_ADMIN_COOKIE_NAME", "blog_admin_session")
 	adminCookieSecure := envBool("BLOG_ADMIN_COOKIE_SECURE", false)
 	adminSessionTTL := envDurationHours("BLOG_ADMIN_SESSION_HOURS", 72)
@@ -62,6 +62,14 @@ func envOrDefault(key, fallback string) string {
 
 func stringsOrEmpty(key string) string {
 	return os.Getenv(key)
+}
+
+func envRequired(key string) string {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		log.Fatalf("%s is required", key)
+	}
+	return value
 }
 
 func envBool(key string, fallback bool) bool {

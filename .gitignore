@@ -3,3 +3,12 @@ frontend/dist/
 backend/storage/
 storage/
 *.db
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+fofa-api-tools.png
+homepage-check.png
+homepage-check-2.png
+videos-check.png

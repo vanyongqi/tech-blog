@@ -47,11 +47,18 @@ go run .
 - `BLOG_DB_PATH`：SQLite 文件路径，默认 `storage/blog.db`
 - `FRONTEND_DIST`：前端构建产物目录；配置后后端可直接托管静态站点
 - `BLOG_ADMIN_USER`：后台用户名，默认 `admin`
-- `BLOG_ADMIN_PASSWORD`：后台密码，默认 `change-this-password`
-- `BLOG_ADMIN_SECRET`：后台 Cookie 签名密钥，默认 `change-this-secret`
+- `BLOG_ADMIN_PASSWORD`：后台密码，必填
+- `BLOG_ADMIN_SECRET`：后台 Cookie 签名密钥，必填
 - `BLOG_ADMIN_COOKIE_NAME`：后台 Cookie 名称，默认 `blog_admin_session`
 - `BLOG_ADMIN_COOKIE_SECURE`：是否只在 HTTPS 下发送后台 Cookie，默认 `false`
 - `BLOG_ADMIN_SESSION_HOURS`：后台登录时长，默认 `72`
+
+建议先在仓库根目录创建 `.env`：
+
+```bash
+cd /Users/fitz/personal/blog
+cp .env.example .env
+```
 
 ### 2. 启动前端
 
@@ -77,9 +84,8 @@ VITE_API_BASE=http://localhost:8080 npm run dev
 本地默认管理员：
 
 - 用户名：`admin`
-- 密码：`change-this-password`
 
-部署到云服务器前，必须替换 `BLOG_ADMIN_PASSWORD` 和 `BLOG_ADMIN_SECRET`。
+后台密码和密钥不再写死在仓库中，必须从 `.env` 或运行环境变量注入。
 
 ## Docker
 
@@ -112,7 +118,8 @@ docker run -d \
 
 ```bash
 cd /Users/fitz/personal/blog
-BLOG_ADMIN_PASSWORD=your-strong-password BLOG_ADMIN_SECRET=your-strong-secret docker compose up -d --build
+cp .env.example .env
+docker compose up -d --build
 ```
 
 说明：
@@ -120,6 +127,7 @@ BLOG_ADMIN_PASSWORD=your-strong-password BLOG_ADMIN_SECRET=your-strong-secret do
 - 容器内会由 Go 服务直接托管前端静态文件。
 - SQLite 数据库存放在 `/app/storage/blog.db`。
 - 生产环境建议把 `BLOG_ADMIN_COOKIE_SECURE` 设为 `true`，并放在 HTTPS 之后。
+- `.env` 已加入 `.gitignore`，不要把真实密码和密钥提交到仓库。
 
 ## 生产部署建议
 
