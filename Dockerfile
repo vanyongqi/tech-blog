@@ -1,3 +1,7 @@
+ARG BUILDPLATFORM=linux/amd64
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
+
 FROM --platform=$BUILDPLATFORM node:24-alpine AS frontend-builder
 WORKDIR /src/frontend
 
