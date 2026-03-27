@@ -1,6 +1,7 @@
 import { startTransition, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getHomeData } from "../lib/api";
+import { getHomeFeaturedShowcase } from "../lib/homeShowcase";
 import type { HomeResponse } from "../types";
 
 export function HomePage() {
@@ -50,6 +51,8 @@ export function HomePage() {
     );
   }
 
+  const showcase = getHomeFeaturedShowcase(homeData.featuredPosts);
+
   return (
     <div className="page home-page">
       <section className="hero-panel">
@@ -60,21 +63,27 @@ export function HomePage() {
       <section className="content-section">
         <div className="section-heading">
           <div>
-            <h2>最近更新</h2>
+            <h2>{showcase.title}</h2>
           </div>
           <Link className="inline-link-text" to="/articles">
             查看全部文章
           </Link>
         </div>
         <div className="archive-grid archive-grid-simple">
-          {homeData.recentPosts.map((post) => (
-            <Link key={post.slug} className="post-card post-card-compact post-card-link" to={`/posts/${post.slug}`}>
-              <h3>
-                <span className="post-title-link">{post.title}</span>
-                <span className="post-summary-inline">：{post.summary}</span>
-              </h3>
-            </Link>
-          ))}
+          {showcase.isEmpty ? (
+            <div className="content-empty-card">
+              <p>{showcase.emptyMessage}</p>
+            </div>
+          ) : (
+            showcase.posts.map((post) => (
+              <Link key={post.slug} className="post-card post-card-compact post-card-link" to={`/posts/${post.slug}`}>
+                <h3>
+                  <span className="post-title-link">{post.title}</span>
+                  <span className="post-summary-inline">：{post.summary}</span>
+                </h3>
+              </Link>
+            ))
+          )}
         </div>
       </section>
     </div>

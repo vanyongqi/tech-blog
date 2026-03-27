@@ -2,6 +2,7 @@ package dao
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
 
 	"personal/blog/backend/model"
@@ -9,7 +10,7 @@ import (
 
 func seedSiteProfile() model.SiteProfile {
 	return model.SiteProfile{
-		Name:     "Fite",
+		Name:     "Vanyongqi",
 		Headline: "写给后端工程师与大模型系统开发者的技术博客",
 		Intro:    "这里记录我在工作中遇到的一些解决的问题和生活中的思考。",
 		Location: "银河系 / 地球 / 北京",
@@ -40,19 +41,23 @@ func seedPosts() []model.Post {
 			Summary:     "把检索、重排、缓存、限流、降级和 tracing 串起来后，你会发现大模型项目的主战场其实在后端系统。",
 			Category:    "LLM Systems",
 			ReadTime:    "9 分钟",
-			HeroNote:    "Prompt 决定上限，后端链路决定你能不能稳定把能力交付出去。",
 			CoverLabel:  "模型工程",
+			ContentMarkdown: strings.TrimSpace(`
+一个线上可用的大模型应用，至少包含 query rewrite、召回、重排、上下文压缩、模型调用、结果缓存和链路观测。只盯 Prompt，迟早会在延迟、成本和稳定性上失控。
+
+## 先把链路拆开，再谈模型效果
+
+把每一段耗时、失败率和命中率拆出来，你才能知道问题是在 embedding、向量检索、rerank，还是模型服务本身。
+
+- 召回与重排必须分别打点
+- 模型服务要有超时、熔断和 fallback
+- 上下文拼接必须可回放、可审计
+
+> 模型应用要稳定上线，靠的是后端工程，不是灵感。
+`),
 			Tags:        []string{"RAG", "Golang", "Observability"},
 			Featured:    true,
 			PublishedAt: mustParseDate("2026-03-22"),
-			Blocks: []model.ContentBlock{
-				{Kind: "paragraph", Text: "一个线上可用的大模型应用，至少包含 query rewrite、召回、重排、上下文压缩、模型调用、结果缓存和链路观测。只盯 Prompt，迟早会在延迟、成本和稳定性上失控。"},
-				{Kind: "video", Title: "关于推理链路的补充讲解", Text: "一段关于检索、重排和 tracing 的演示视频。", URL: "https://www.youtube.com/watch?v=aircAruvnKk"},
-				{Kind: "heading", Title: "先把链路拆开，再谈模型效果"},
-				{Kind: "paragraph", Text: "把每一段耗时、失败率和命中率拆出来，你才能知道问题是在 embedding、向量检索、rerank，还是模型服务本身。"},
-				{Kind: "list", Items: []string{"召回与重排必须分别打点", "模型服务要有超时、熔断和 fallback", "上下文拼接必须可回放、可审计"}},
-				{Kind: "quote", Text: "模型应用要稳定上线，靠的是后端工程，不是灵感。"},
-			},
 		},
 		{
 			Slug:        "designing-an-inference-gateway",
@@ -60,18 +65,22 @@ func seedPosts() []model.Post {
 			Summary:     "从连接池、配额、超时、模型路由和观测性切入，讲清楚推理网关在生产环境里的关键设计点。",
 			Category:    "Backend",
 			ReadTime:    "8 分钟",
-			HeroNote:    "推理网关不是简单转发层，它决定了吞吐、成本和故障半径。",
 			CoverLabel:  "服务治理",
+			ContentMarkdown: strings.TrimSpace(`
+当你同时接多个模型服务商、多个模型版本和不同优先级流量时，网关就不只是代理层，而是整个模型平台的控制面。
+
+## 四件必须先定义清楚的事
+
+并发策略、超时策略、失败回退顺序和配额策略要在接入业务前就明确，否则流量一上来很快会进入不可解释状态。
+
+- 调用级超时优先于网关总超时
+- 租户配额要支持硬限额和软告警
+- 模型路由策略要可热更新
+- 请求与响应必须带 trace id
+`),
 			Tags:        []string{"Inference", "Gateway", "Golang"},
 			Featured:    true,
 			PublishedAt: mustParseDate("2026-03-14"),
-			Blocks: []model.ContentBlock{
-				{Kind: "paragraph", Text: "当你同时接多个模型服务商、多个模型版本和不同优先级流量时，网关就不只是代理层，而是整个模型平台的控制面。"},
-				{Kind: "video", Title: "推理网关的超时与配额策略", Text: "一段关于网关治理策略的演示视频。", URL: "https://www.youtube.com/watch?v=5MgBikgcWnY"},
-				{Kind: "heading", Title: "四件必须先定义清楚的事"},
-				{Kind: "paragraph", Text: "并发策略、超时策略、失败回退顺序和配额策略要在接入业务前就明确，否则流量一上来很快会进入不可解释状态。"},
-				{Kind: "list", Items: []string{"调用级超时优先于网关总超时", "租户配额要支持硬限额和软告警", "模型路由策略要可热更新", "请求与响应必须带 trace id"}},
-			},
 		},
 		{
 			Slug:        "doris-for-event-replay-and-analysis",
@@ -79,17 +88,21 @@ func seedPosts() []model.Post {
 			Summary:     "埋点多、明细大、回放要求高时，Doris 很适合承担分析与排障的双重职责，但前提是口径和明细组织要先想清楚。",
 			Category:    "Data Infra",
 			ReadTime:    "7 分钟",
-			HeroNote:    "分析系统最怕的不是慢，而是口径漂移后没人敢相信结果。",
 			CoverLabel:  "数据基础设施",
+			ContentMarkdown: strings.TrimSpace(`
+事件分析和质量回放其实是两类需求：前者看聚合口径，后者看原始链路。表设计如果只服务其中一种，另一种迟早会变得很难维护。
+
+## 回放链路要保留什么
+
+最少要保留 trace id、时间戳、租户、版本、上下游关键字段和决策结果，否则故障回放只能靠猜。
+
+- 聚合字段和明细字段分层存储
+- 高频筛选字段提前建好排序键
+- 回放接口不要依赖线上热路径
+`),
 			Tags:        []string{"Doris", "ETL", "Analytics"},
 			Featured:    false,
 			PublishedAt: mustParseDate("2026-03-02"),
-			Blocks: []model.ContentBlock{
-				{Kind: "paragraph", Text: "事件分析和质量回放其实是两类需求：前者看聚合口径，后者看原始链路。表设计如果只服务其中一种，另一种迟早会变得很难维护。"},
-				{Kind: "heading", Title: "回放链路要保留什么"},
-				{Kind: "paragraph", Text: "最少要保留 trace id、时间戳、租户、版本、上下游关键字段和决策结果，否则故障回放只能靠猜。"},
-				{Kind: "list", Items: []string{"聚合字段和明细字段分层存储", "高频筛选字段提前建好排序键", "回放接口不要依赖线上热路径"}},
-			},
 		},
 	}
 }

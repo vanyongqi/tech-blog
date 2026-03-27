@@ -1,13 +1,15 @@
-import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import type { ChangeEvent, FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAdminSessionContext } from "../components/AdminShell";
 import {
   createAdminVideo,
   getAdminVideo,
   suggestAdminVideoThumbnail,
+  uploadAdminVideoAsset,
   updateAdminVideo,
 } from "../lib/api";
+import { getAdminEditorSaveSuccessMessage, type AdminEditorNotice } from "../lib/adminEditorNotice";
 import type { AdminSaveVideoRequest } from "../types";
 
 type FormState = {
@@ -54,14 +56,27 @@ function deriveThumbnailFromURL(videoURL: string) {
 export function AdminVideoEditorPage() {
   useAdminSessionContext();
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
   const isEditMode = Boolean(id);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [form, setForm] = useState<FormState>(emptyForm);
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [generatingThumbnail, setGeneratingThumbnail] = useState(false);
   const [error, setError] = useState("");
+  const [saveNotice, setSaveNotice] = useState<AdminEditorNotice | null>(null);
+
+  useEffect(() => {
+    const nextNotice = (location.state as { saveNotice?: AdminEditorNotice } | null)?.saveNotice;
+    if (!nextNotice) {
+      return;
+    }
+    setSaveNotice(nextNotice);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
 
   useEffect(() => {
     if (!isEditMode || !id) {
@@ -97,6 +112,36 @@ export function AdminVideoEditorPage() {
     };
   }, [id, isEditMode]);
 
+  async function handleFileSelect(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const response = await uploadAdminVideoAsset(file);
+      setForm((currentForm) => ({
+        ...currentForm,
+        thumbnailUrl: response.url,
+      }));
+      setSaveNotice({
+        type: "success",
+        message: "封面预览已更新，保存修改后会同步到前台。",
+      });
+    } catch (uploadError) {
+      setSaveNotice({
+        type: "error",
+        message: uploadError instanceof Error ? uploadError.message : "封面上传失败",
+      });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  }
+
   useEffect(() => {
     if (form.thumbnailUrl.trim() !== "") {
       return;
@@ -127,16 +172,26 @@ export function AdminVideoEditorPage() {
 
     try {
       setSaving(true);
+      setSaveNotice(null);
       if (isEditMode && id) {
-        const response = await updateAdminVideo(Number(id), payload);
-        navigate(`/admin/videos/${response.video.id}/edit`, { replace: true });
+        await updateAdminVideo(Number(id), payload);
+        setSaveNotice({
+          type: "success",
+          message: getAdminEditorSaveSuccessMessage("video", true),
+        });
       } else {
         const response = await createAdminVideo(payload);
-        navigate(`/admin/videos/${response.video.id}/edit`, { replace: true });
+        navigate(`/admin/videos/${response.video.id}/edit`, {
+          replace: true,
+          state: { saveNotice: { type: "success", message: getAdminEditorSaveSuccessMessage("video", false) } },
+        });
       }
       setError("");
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "保存失败");
+      setSaveNotice({
+        type: "error",
+        message: submitError instanceof Error ? submitError.message : "保存失败",
+      });
     } finally {
       setSaving(false);
     }
@@ -149,6 +204,10 @@ export function AdminVideoEditorPage() {
         ...currentForm,
         thumbnailUrl: localThumbnail,
       }));
+      setSaveNotice({
+        type: "success",
+        message: "封面预览已更新，保存修改后会同步到前台。",
+      });
       setError("");
       return;
     }
@@ -164,6 +223,10 @@ export function AdminVideoEditorPage() {
         ...currentForm,
         thumbnailUrl: response.thumbnailUrl,
       }));
+      setSaveNotice({
+        type: "success",
+        message: "封面预览已更新，保存修改后会同步到前台。",
+      });
       setError("");
     } catch (generateError) {
       setError(generateError instanceof Error ? generateError.message : "自动生成封面失败");
@@ -197,19 +260,22 @@ export function AdminVideoEditorPage() {
           视频链接
           <input value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} />
         </label>
-        <label>
-          封面图链接
-          <input
-            value={form.thumbnailUrl}
-            onChange={(event) => setForm({ ...form, thumbnailUrl: event.target.value })}
-            placeholder="可手填；YouTube 会自动补，B 站保存时会尝试解析"
-          />
-        </label>
         <div className="admin-inline-actions">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={handleFileSelect}
+          />
+          <button type="button" className="ghost-link" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+            {uploading ? "上传中..." : form.thumbnailUrl ? "重新上传封面" : "上传封面"}
+          </button>
           <button type="button" className="ghost-link" onClick={handleAutoGenerateThumbnail} disabled={generatingThumbnail}>
             {generatingThumbnail ? "生成中..." : "自动生成封面"}
           </button>
         </div>
+        <p className="admin-field-hint">上传或自动生成封面后，还需要点击“保存修改”才会真正生效。</p>
         {form.thumbnailUrl ? (
           <div className="admin-video-preview">
             <img src={form.thumbnailUrl} alt="视频封面预览" />
@@ -225,9 +291,10 @@ export function AdminVideoEditorPage() {
         </label>
 
         {error ? <p className="form-error">{error}</p> : null}
+        {saveNotice ? <p className={saveNotice.type === "success" ? "form-success" : "form-error"}>{saveNotice.message}</p> : null}
 
         <div className="admin-editor-actions">
-          <button type="submit" className="primary-link" disabled={saving}>
+          <button type="submit" className="primary-link" disabled={saving || uploading}>
             {saving ? "保存中..." : isEditMode ? "保存修改" : "创建视频"}
           </button>
         </div>

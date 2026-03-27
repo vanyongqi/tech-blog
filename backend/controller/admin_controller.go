@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -110,6 +111,11 @@ func (c *AdminController) HandlePostsRoute(w http.ResponseWriter, r *http.Reques
 	path := strings.Trim(strings.TrimPrefix(r.URL.Path, "/api/admin/posts"), "/")
 
 	switch {
+	case path == "assets" && r.Method == http.MethodPost:
+		c.UploadPostAsset(w, r)
+	case path == "assets":
+		w.Header().Set("Allow", "POST")
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	case path == "" && r.Method == http.MethodGet:
 		c.ListPosts(w, r)
 	case path == "" && r.Method == http.MethodPost:
@@ -133,10 +139,65 @@ func (c *AdminController) HandlePostsRoute(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+func (c *AdminController) UploadPostAsset(w http.ResponseWriter, r *http.Request) {
+	c.uploadAsset(w, r)
+}
+
+func (c *AdminController) UploadAsset(w http.ResponseWriter, r *http.Request) {
+	c.uploadAsset(w, r)
+}
+
+func (c *AdminController) uploadAsset(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		writeJSON(w, http.StatusBadRequest, api.ErrorResponse{Message: "invalid upload payload"})
+		return
+	}
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, api.ErrorResponse{Message: service.ErrAssetFileRequired.Error()})
+		return
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		writeInternalError(w, err)
+		return
+	}
+
+	mimeType := strings.TrimSpace(header.Header.Get("Content-Type"))
+	asset, err := c.contentService.CreateAsset(r.Context(), model.CreateAssetInput{
+		Asset: model.Asset{
+			Filename: header.Filename,
+			MimeType: mimeType,
+			Data:     data,
+		},
+	})
+	if err != nil {
+		writeAdminServiceError(w, err)
+		return
+	}
+
+	assetURL := "/api/assets/" + strconv.FormatInt(asset.ID, 10)
+	writeJSON(w, http.StatusCreated, api.AdminAssetUploadResponse{
+		ID:       asset.ID,
+		Filename: asset.Filename,
+		URL:      assetURL,
+		Markdown: "![" + asset.Filename + "](" + assetURL + ")",
+	})
+}
+
 func (c *AdminController) HandleVideosRoute(w http.ResponseWriter, r *http.Request) {
 	path := strings.Trim(strings.TrimPrefix(r.URL.Path, "/api/admin/videos"), "/")
 
 	switch {
+	case path == "assets" && r.Method == http.MethodPost:
+		c.UploadVideoAsset(w, r)
+	case path == "assets":
+		w.Header().Set("Allow", "POST")
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	case path == "thumbnail" && r.Method == http.MethodPost:
 		c.SuggestVideoThumbnail(w, r)
 	case path == "thumbnail":
@@ -169,10 +230,19 @@ func (c *AdminController) HandleVideosRoute(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+func (c *AdminController) UploadVideoAsset(w http.ResponseWriter, r *http.Request) {
+	c.uploadAsset(w, r)
+}
+
 func (c *AdminController) HandleProjectsRoute(w http.ResponseWriter, r *http.Request) {
 	path := strings.Trim(strings.TrimPrefix(r.URL.Path, "/api/admin/projects"), "/")
 
 	switch {
+	case path == "assets" && r.Method == http.MethodPost:
+		c.UploadProjectAsset(w, r)
+	case path == "assets":
+		w.Header().Set("Allow", "POST")
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	case path == "" && r.Method == http.MethodGet:
 		c.ListProjectsAdmin(w, r)
 	case path == "" && r.Method == http.MethodPost:
@@ -198,6 +268,10 @@ func (c *AdminController) HandleProjectsRoute(w http.ResponseWriter, r *http.Req
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
 	}
+}
+
+func (c *AdminController) UploadProjectAsset(w http.ResponseWriter, r *http.Request) {
+	c.uploadAsset(w, r)
 }
 
 func (c *AdminController) GetPost(w http.ResponseWriter, r *http.Request, slug string) {
@@ -408,58 +482,34 @@ func toAdminPostSummaries(posts []model.Post) []api.AdminPostSummaryPayload {
 }
 
 func toAdminPostPayload(post model.Post) api.AdminPostPayload {
-	blocks := make([]api.AdminContentBlock, 0, len(post.Blocks))
-	for _, block := range post.Blocks {
-		blocks = append(blocks, api.AdminContentBlock{
-			Kind:  block.Kind,
-			Title: block.Title,
-			Text:  block.Text,
-			URL:   block.URL,
-			Items: block.Items,
-		})
-	}
-
 	return api.AdminPostPayload{
 		Slug:         post.Slug,
 		Title:        post.Title,
 		Summary:      post.Summary,
 		Category:     post.Category,
 		ReadTime:     post.ReadTime,
-		HeroNote:     post.HeroNote,
 		CoverLabel:   post.CoverLabel,
+		ContentMarkdown: post.ContentMarkdown,
 		Tags:         post.Tags,
 		Featured:     post.Featured,
 		PublishedAt:  post.PublishedAt.Format("2006-01-02"),
-		Blocks:       blocks,
 		LikeCount:    post.LikeCount,
 		CommentCount: post.CommentCount,
 	}
 }
 
 func toModelAdminPost(request api.AdminSavePostRequest) model.Post {
-	blocks := make([]model.ContentBlock, 0, len(request.Blocks))
-	for _, block := range request.Blocks {
-		blocks = append(blocks, model.ContentBlock{
-			Kind:  block.Kind,
-			Title: block.Title,
-			Text:  block.Text,
-			URL:   block.URL,
-			Items: block.Items,
-		})
-	}
-
 	return model.Post{
 		Slug:        request.Slug,
 		Title:       request.Title,
 		Summary:     request.Summary,
 		Category:    request.Category,
 		ReadTime:    request.ReadTime,
-		HeroNote:    request.HeroNote,
 		CoverLabel:  request.CoverLabel,
+		ContentMarkdown: request.ContentMarkdown,
 		Tags:        request.Tags,
 		Featured:    request.Featured,
 		PublishedAt: parseAdminDate(request.PublishedAt),
-		Blocks:      blocks,
 	}
 }
 
@@ -544,15 +594,16 @@ func writeAdminServiceError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, service.ErrPostNotFound):
 		writeJSON(w, http.StatusNotFound, api.ErrorResponse{Message: err.Error()})
-	case errors.Is(err, service.ErrPostSlugRequired),
-		errors.Is(err, service.ErrPostSlugInvalid),
+	case errors.Is(err, service.ErrPostSlugInvalid),
 		errors.Is(err, service.ErrPostTitleRequired),
 		errors.Is(err, service.ErrPostSummaryRequired),
 		errors.Is(err, service.ErrPostCategoryRequired),
 		errors.Is(err, service.ErrPostReadTimeRequired),
 		errors.Is(err, service.ErrPostPublishedAtInvalid),
-		errors.Is(err, service.ErrPostBlocksRequired),
+		errors.Is(err, service.ErrPostContentMarkdownRequired),
 		errors.Is(err, service.ErrDuplicatePostSlug),
+		errors.Is(err, service.ErrAssetFileRequired),
+		errors.Is(err, service.ErrAssetMimeTypeInvalid),
 		errors.Is(err, service.ErrProjectNameRequired),
 		errors.Is(err, service.ErrProjectSummaryRequired),
 		errors.Is(err, service.ErrProjectLinkRequired),

@@ -14,6 +14,7 @@ var ErrPostNotFound = errors.New("post not found")
 var ErrCommentContentRequired = errors.New("comment content is required")
 var ErrCommentContentTooLong = errors.New("comment content must be 500 characters or fewer")
 var ErrVisitorIdentityRequired = errors.New("visitor identity is required")
+var ErrAssetNotFound = errors.New("asset not found")
 
 type BlogService struct {
 	repository dao.BlogRepository
@@ -84,6 +85,17 @@ func (s *BlogService) ListVideos(ctx context.Context) ([]model.Video, error) {
 
 func (s *BlogService) ListTimeline(ctx context.Context) ([]model.TimelineEntry, error) {
 	return s.repository.ListTimeline(ctx)
+}
+
+func (s *BlogService) GetAsset(ctx context.Context, id int64) (model.Asset, error) {
+	asset, err := s.repository.GetAssetByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, dao.ErrAssetNotFound) {
+			return model.Asset{}, ErrAssetNotFound
+		}
+		return model.Asset{}, err
+	}
+	return asset, nil
 }
 
 func (s *BlogService) CreateComment(ctx context.Context, input model.CreateCommentInput) (model.Comment, error) {

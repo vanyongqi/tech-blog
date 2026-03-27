@@ -16,6 +16,7 @@ func NewHandler(blogController *controller.BlogController, adminController *cont
 	apiMux.HandleFunc("/api/home", methodGuard(http.MethodGet, blogController.GetHome))
 	apiMux.HandleFunc("/api/posts", methodGuard(http.MethodGet, blogController.ListPosts))
 	apiMux.HandleFunc("/api/posts/", blogController.HandlePostRoute)
+	apiMux.HandleFunc("/api/assets/", methodGuard(http.MethodGet, blogController.GetAsset))
 
 	adminPublicMux := http.NewServeMux()
 	adminPublicMux.HandleFunc("/api/admin/login", methodGuard(http.MethodPost, adminController.Login))
@@ -23,6 +24,7 @@ func NewHandler(blogController *controller.BlogController, adminController *cont
 	adminProtectedMux := http.NewServeMux()
 	adminProtectedMux.HandleFunc("/api/admin/logout", methodGuard(http.MethodPost, adminController.Logout))
 	adminProtectedMux.HandleFunc("/api/admin/session", methodGuard(http.MethodGet, adminController.GetSession))
+	adminProtectedMux.HandleFunc("/api/admin/assets", methodGuard(http.MethodPost, adminController.UploadAsset))
 	adminProtectedMux.HandleFunc("/api/admin/posts", adminController.HandlePostsRoute)
 	adminProtectedMux.HandleFunc("/api/admin/posts/", adminController.HandlePostsRoute)
 	adminProtectedMux.HandleFunc("/api/admin/projects", adminController.HandleProjectsRoute)
@@ -34,6 +36,7 @@ func NewHandler(blogController *controller.BlogController, adminController *cont
 	rootAPIMux.Handle("/api/admin/login", withCORS(adminPublicMux))
 	rootAPIMux.Handle("/api/admin/logout", withCORS(middleware.RequireAdminSession(authService, adminCookieName, adminProtectedMux)))
 	rootAPIMux.Handle("/api/admin/session", withCORS(middleware.RequireAdminSession(authService, adminCookieName, adminProtectedMux)))
+	rootAPIMux.Handle("/api/admin/assets", withCORS(middleware.RequireAdminSession(authService, adminCookieName, adminProtectedMux)))
 	rootAPIMux.Handle("/api/admin/posts", withCORS(middleware.RequireAdminSession(authService, adminCookieName, adminProtectedMux)))
 	rootAPIMux.Handle("/api/admin/posts/", withCORS(middleware.RequireAdminSession(authService, adminCookieName, adminProtectedMux)))
 	rootAPIMux.Handle("/api/admin/projects", withCORS(middleware.RequireAdminSession(authService, adminCookieName, adminProtectedMux)))
@@ -43,6 +46,7 @@ func NewHandler(blogController *controller.BlogController, adminController *cont
 	rootAPIMux.Handle("/api/home", middleware.CaptureVisitor(withCORS(apiMux)))
 	rootAPIMux.Handle("/api/posts", middleware.CaptureVisitor(withCORS(apiMux)))
 	rootAPIMux.Handle("/api/posts/", middleware.CaptureVisitor(withCORS(apiMux)))
+	rootAPIMux.Handle("/api/assets/", withCORS(apiMux))
 
 	if strings.TrimSpace(staticDir) == "" {
 		rootMux := http.NewServeMux()

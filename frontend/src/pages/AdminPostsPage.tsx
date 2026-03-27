@@ -93,7 +93,7 @@ export function AdminPostsPage() {
                 <h3>{post.title}</h3>
               </div>
               <span className={post.featured ? "status-pill active" : "status-pill"}>
-                {post.featured ? "Featured" : "Normal"}
+                {post.featured ? "首页精选" : "普通文章"}
               </span>
             </div>
             <p>{post.summary}</p>

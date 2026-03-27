@@ -1,6 +1,7 @@
 import type { FormEvent } from "react";
 import { startTransition, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { MarkdownContent } from "../components/MarkdownContent";
 import {
   createComment,
   formatDate,
@@ -9,60 +10,6 @@ import {
   toggleLike,
 } from "../lib/api";
 import type { PostDetailPayload } from "../types";
-
-function isDirectVideo(url: string) {
-  return /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
-}
-
-function toEmbeddedVideoURL(url: string) {
-  const trimmed = url.trim();
-  if (trimmed === "") {
-    return "";
-  }
-
-  if (trimmed.includes("youtube.com/watch")) {
-    try {
-      const parsed = new URL(trimmed);
-      const videoId = parsed.searchParams.get("v");
-      if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}`;
-      }
-    } catch {
-      return "";
-    }
-  }
-
-  if (trimmed.includes("youtu.be/")) {
-    try {
-      const parsed = new URL(trimmed);
-      const videoId = parsed.pathname.replace("/", "");
-      if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}`;
-      }
-    } catch {
-      return "";
-    }
-  }
-
-  if (trimmed.includes("bilibili.com/video/")) {
-    try {
-      const parsed = new URL(trimmed);
-      const parts = parsed.pathname.split("/").filter(Boolean);
-      const bvid = parts[parts.length - 1];
-      if (bvid) {
-        return `https://player.bilibili.com/player.html?bvid=${bvid}&page=1`;
-      }
-    } catch {
-      return "";
-    }
-  }
-
-  if (trimmed.includes("/embed/") || trimmed.includes("player.bilibili.com")) {
-    return trimmed;
-  }
-
-  return "";
-}
 
 export function PostDetailPage() {
   const { slug = "" } = useParams();
@@ -206,63 +153,10 @@ export function PostDetailPage() {
           <span>评论 {post.commentCount}</span>
           <span>匿名身份 {visitorName}</span>
         </div>
-        <blockquote>{post.heroNote}</blockquote>
       </div>
 
       <div className="post-body">
-        {post.blocks.map((block, index) => {
-          if (block.kind === "heading") {
-            return <h2 key={`${block.kind}-${index}`}>{block.title}</h2>;
-          }
-
-          if (block.kind === "quote") {
-            return <blockquote key={`${block.kind}-${index}`}>{block.text}</blockquote>;
-          }
-
-          if (block.kind === "list") {
-            return (
-              <ul key={`${block.kind}-${index}`}>
-                {block.items?.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            );
-          }
-
-          if (block.kind === "video") {
-            const videoURL = block.url ?? "";
-            const embeddedURL = toEmbeddedVideoURL(videoURL);
-
-            return (
-              <figure key={`${block.kind}-${index}`} className="video-block">
-                {isDirectVideo(videoURL) ? (
-                  <video controls preload="metadata" className="video-player">
-                    <source src={videoURL} />
-                  </video>
-                ) : embeddedURL ? (
-                  <div className="video-frame-wrap">
-                    <iframe
-                      className="video-frame"
-                      src={embeddedURL}
-                      title={block.title || `video-${index + 1}`}
-                      loading="lazy"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                    />
-                  </div>
-                ) : (
-                  <a className="inline-link" href={videoURL} target="_blank" rel="noreferrer">
-                    打开视频链接
-                  </a>
-                )}
-                {block.title ? <figcaption className="video-caption">{block.title}</figcaption> : null}
-                {block.text ? <p className="video-description">{block.text}</p> : null}
-              </figure>
-            );
-          }
-
-          return <p key={`${block.kind}-${index}`}>{block.text}</p>;
-        })}
+        <MarkdownContent content={post.contentMarkdown} />
       </div>
 
       <section className="comment-section">

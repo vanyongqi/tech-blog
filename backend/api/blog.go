@@ -33,7 +33,6 @@ type PostSummaryPayload struct {
 	Summary     string   `json:"summary"`
 	Category    string   `json:"category"`
 	ReadTime    string   `json:"readTime"`
-	HeroNote    string   `json:"heroNote"`
 	CoverLabel  string   `json:"coverLabel"`
 	Tags        []string `json:"tags"`
 	Featured    bool     `json:"featured"`
@@ -42,17 +41,9 @@ type PostSummaryPayload struct {
 	CommentCount int     `json:"commentCount"`
 }
 
-type ContentBlock struct {
-	Kind  string   `json:"kind"`
-	Title string   `json:"title,omitempty"`
-	Text  string   `json:"text,omitempty"`
-	URL   string   `json:"url,omitempty"`
-	Items []string `json:"items,omitempty"`
-}
-
 type PostDetailPayload struct {
 	PostSummaryPayload
-	Blocks         []ContentBlock   `json:"blocks"`
+	ContentMarkdown string          `json:"contentMarkdown"`
 	LikedByVisitor bool             `json:"likedByVisitor"`
 	Comments       []CommentPayload `json:"comments"`
 }

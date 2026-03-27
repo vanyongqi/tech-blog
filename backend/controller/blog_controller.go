@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -179,6 +181,30 @@ func (c *BlogController) toggleLike(w http.ResponseWriter, r *http.Request, slug
 	})
 }
 
+func (c *BlogController) GetAsset(w http.ResponseWriter, r *http.Request) {
+	idText := strings.Trim(strings.TrimPrefix(r.URL.Path, "/api/assets/"), "/")
+	id, err := strconv.ParseInt(idText, 10, 64)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, api.ErrorResponse{Message: "invalid asset id"})
+		return
+	}
+
+	asset, err := c.blogService.GetAsset(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, service.ErrAssetNotFound) {
+			writeJSON(w, http.StatusNotFound, api.ErrorResponse{Message: err.Error()})
+			return
+		}
+		writeInternalError(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", asset.MimeType)
+	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+	w.Header().Set("Content-Disposition", `inline; filename="`+asset.Filename+`"`)
+	http.ServeContent(w, r, asset.Filename, asset.CreatedAt, bytes.NewReader(asset.Data))
+}
+
 func toSitePayload(site model.SiteProfile) api.SitePayload {
 	stats := make([]api.SiteStat, 0, len(site.Stats))
 	for _, stat := range site.Stats {
@@ -213,7 +239,6 @@ func toPostSummaries(posts []model.Post) []api.PostSummaryPayload {
 			Summary:      post.Summary,
 			Category:     post.Category,
 			ReadTime:     post.ReadTime,
-			HeroNote:     post.HeroNote,
 			CoverLabel:   post.CoverLabel,
 			Tags:         post.Tags,
 			Featured:     post.Featured,
@@ -226,17 +251,6 @@ func toPostSummaries(posts []model.Post) []api.PostSummaryPayload {
 }
 
 func toPostDetailPayload(post model.Post) api.PostDetailPayload {
-	blocks := make([]api.ContentBlock, 0, len(post.Blocks))
-	for _, block := range post.Blocks {
-		blocks = append(blocks, api.ContentBlock{
-			Kind:  block.Kind,
-			Title: block.Title,
-			Text:  block.Text,
-			URL:   block.URL,
-			Items: block.Items,
-		})
-	}
-
 	comments := make([]api.CommentPayload, 0, len(post.Comments))
 	for _, comment := range post.Comments {
 		comments = append(comments, toCommentPayload(comment))
@@ -244,7 +258,7 @@ func toPostDetailPayload(post model.Post) api.PostDetailPayload {
 
 	return api.PostDetailPayload{
 		PostSummaryPayload: toPostSummaries([]model.Post{post})[0],
-		Blocks:             blocks,
+		ContentMarkdown:    post.ContentMarkdown,
 		LikedByVisitor:     post.LikedByVisitor,
 		Comments:           comments,
 	}
@@ -328,7 +342,8 @@ func writeServiceError(w http.ResponseWriter, err error) {
 	}
 }
 
-func writeInternalError(w http.ResponseWriter, _ error) {
+func writeInternalError(w http.ResponseWriter, err error) {
+	log.Printf("internal error: %v", err)
 	writeJSON(w, http.StatusInternalServerError, api.ErrorResponse{Message: "internal server error"})
 }
 

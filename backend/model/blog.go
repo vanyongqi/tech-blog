@@ -25,14 +25,6 @@ type SiteProfile struct {
 	SocialLinks []SocialLink
 }
 
-type ContentBlock struct {
-	Kind  string
-	Title string
-	Text  string
-	URL   string
-	Items []string
-}
-
 type Post struct {
 	ID             int64
 	Slug           string
@@ -40,16 +32,23 @@ type Post struct {
 	Summary        string
 	Category       string
 	ReadTime       string
-	HeroNote       string
 	CoverLabel     string
+	ContentMarkdown string
 	Tags           []string
 	Featured       bool
 	PublishedAt    time.Time
-	Blocks         []ContentBlock
 	LikeCount      int
 	CommentCount   int
 	LikedByVisitor bool
 	Comments       []Comment
+}
+
+type Asset struct {
+	ID        int64
+	Filename  string
+	MimeType  string
+	Data      []byte
+	CreatedAt time.Time
 }
 
 type Project struct {

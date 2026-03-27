@@ -71,12 +71,11 @@ func (r *SQLiteRepository) ListPosts(ctx context.Context) ([]model.Post, error) 
 			p.summary,
 			p.category,
 			p.read_time,
-			p.hero_note,
 			p.cover_label,
+			p.content_markdown,
 			p.tags_json,
 			p.featured,
 			p.published_at,
-			p.blocks_json,
 			(SELECT COUNT(1) FROM post_likes pl WHERE pl.post_id = p.id) AS like_count,
 			(SELECT COUNT(1) FROM comments c WHERE c.post_id = p.id AND c.status = 'approved') AS comment_count
 		FROM posts p
@@ -109,12 +108,11 @@ func (r *SQLiteRepository) GetPostBySlug(ctx context.Context, slug, visitorID st
 			p.summary,
 			p.category,
 			p.read_time,
-			p.hero_note,
 			p.cover_label,
+			p.content_markdown,
 			p.tags_json,
 			p.featured,
 			p.published_at,
-			p.blocks_json,
 			(SELECT COUNT(1) FROM post_likes pl WHERE pl.post_id = p.id) AS like_count,
 			(SELECT COUNT(1) FROM comments c WHERE c.post_id = p.id AND c.status = 'approved') AS comment_count,
 			EXISTS(SELECT 1 FROM post_likes pl WHERE pl.post_id = p.id AND pl.visitor_id = ?)
@@ -144,19 +142,18 @@ func (r *SQLiteRepository) CreatePost(ctx context.Context, post model.Post) (mod
 	_, err := r.db.ExecContext(
 		ctx,
 		`INSERT INTO posts
-			(slug, title, summary, category, read_time, hero_note, cover_label, tags_json, featured, published_at, blocks_json)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			(slug, title, summary, category, read_time, cover_label, content_markdown, tags_json, featured, published_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		post.Slug,
 		post.Title,
 		post.Summary,
 		post.Category,
 		post.ReadTime,
-		post.HeroNote,
 		post.CoverLabel,
+		post.ContentMarkdown,
 		mustJSON(post.Tags),
 		boolToInt(post.Featured),
 		post.PublishedAt.Format(timeLayout),
-		mustJSON(post.Blocks),
 	)
 	if err != nil {
 		if isDuplicateSlugError(err) {
@@ -171,19 +168,18 @@ func (r *SQLiteRepository) UpdatePost(ctx context.Context, currentSlug string, p
 	result, err := r.db.ExecContext(
 		ctx,
 		`UPDATE posts
-		SET slug = ?, title = ?, summary = ?, category = ?, read_time = ?, hero_note = ?, cover_label = ?, tags_json = ?, featured = ?, published_at = ?, blocks_json = ?
+		SET slug = ?, title = ?, summary = ?, category = ?, read_time = ?, cover_label = ?, content_markdown = ?, tags_json = ?, featured = ?, published_at = ?
 		WHERE slug = ?`,
 		post.Slug,
 		post.Title,
 		post.Summary,
 		post.Category,
 		post.ReadTime,
-		post.HeroNote,
 		post.CoverLabel,
+		post.ContentMarkdown,
 		mustJSON(post.Tags),
 		boolToInt(post.Featured),
 		post.PublishedAt.Format(timeLayout),
-		mustJSON(post.Blocks),
 		currentSlug,
 	)
 	if err != nil {
@@ -522,6 +518,52 @@ func (r *SQLiteRepository) ToggleLike(ctx context.Context, input model.ToggleLik
 	}, nil
 }
 
+func (r *SQLiteRepository) CreateAsset(ctx context.Context, asset model.Asset) (model.Asset, error) {
+	asset.CreatedAt = time.Now().UTC()
+	result, err := r.db.ExecContext(
+		ctx,
+		`INSERT INTO post_assets (filename, mime_type, data_blob, created_at) VALUES (?, ?, ?, ?)`,
+		asset.Filename,
+		asset.MimeType,
+		asset.Data,
+		asset.CreatedAt.Format(timeLayout),
+	)
+	if err != nil {
+		return model.Asset{}, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return model.Asset{}, err
+	}
+	asset.ID = id
+	return asset, nil
+}
+
+func (r *SQLiteRepository) GetAssetByID(ctx context.Context, id int64) (model.Asset, error) {
+	var asset model.Asset
+	var createdAt string
+
+	err := r.db.QueryRowContext(
+		ctx,
+		`SELECT id, filename, mime_type, data_blob, created_at FROM post_assets WHERE id = ?`,
+		id,
+	).Scan(&asset.ID, &asset.Filename, &asset.MimeType, &asset.Data, &createdAt)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return model.Asset{}, ErrAssetNotFound
+		}
+		return model.Asset{}, err
+	}
+
+	parsed, err := time.Parse(timeLayout, createdAt)
+	if err != nil {
+		return model.Asset{}, err
+	}
+	asset.CreatedAt = parsed
+	return asset, nil
+}
+
 type rowScanner interface {
 	Scan(dest ...any) error
 }
@@ -529,7 +571,6 @@ type rowScanner interface {
 func scanPost(scanner rowScanner) (model.Post, error) {
 	var post model.Post
 	var tagsJSON string
-	var blocksJSON string
 	var featuredInt int
 	var publishedAt string
 
@@ -540,19 +581,18 @@ func scanPost(scanner rowScanner) (model.Post, error) {
 		&post.Summary,
 		&post.Category,
 		&post.ReadTime,
-		&post.HeroNote,
 		&post.CoverLabel,
+		&post.ContentMarkdown,
 		&tagsJSON,
 		&featuredInt,
 		&publishedAt,
-		&blocksJSON,
 		&post.LikeCount,
 		&post.CommentCount,
 	); err != nil {
 		return model.Post{}, err
 	}
 
-	if err := hydratePost(&post, tagsJSON, blocksJSON, featuredInt, publishedAt); err != nil {
+	if err := hydratePost(&post, tagsJSON, featuredInt, publishedAt); err != nil {
 		return model.Post{}, err
 	}
 	return post, nil
@@ -561,7 +601,6 @@ func scanPost(scanner rowScanner) (model.Post, error) {
 func scanPostWithLikeState(scanner rowScanner) (model.Post, error) {
 	var post model.Post
 	var tagsJSON string
-	var blocksJSON string
 	var featuredInt int
 	var publishedAt string
 	var likedByVisitorInt int
@@ -573,12 +612,11 @@ func scanPostWithLikeState(scanner rowScanner) (model.Post, error) {
 		&post.Summary,
 		&post.Category,
 		&post.ReadTime,
-		&post.HeroNote,
 		&post.CoverLabel,
+		&post.ContentMarkdown,
 		&tagsJSON,
 		&featuredInt,
 		&publishedAt,
-		&blocksJSON,
 		&post.LikeCount,
 		&post.CommentCount,
 		&likedByVisitorInt,
@@ -586,18 +624,15 @@ func scanPostWithLikeState(scanner rowScanner) (model.Post, error) {
 		return model.Post{}, err
 	}
 
-	if err := hydratePost(&post, tagsJSON, blocksJSON, featuredInt, publishedAt); err != nil {
+	if err := hydratePost(&post, tagsJSON, featuredInt, publishedAt); err != nil {
 		return model.Post{}, err
 	}
 	post.LikedByVisitor = likedByVisitorInt == 1
 	return post, nil
 }
 
-func hydratePost(post *model.Post, tagsJSON, blocksJSON string, featuredInt int, publishedAt string) error {
+func hydratePost(post *model.Post, tagsJSON string, featuredInt int, publishedAt string) error {
 	if err := json.Unmarshal([]byte(tagsJSON), &post.Tags); err != nil {
-		return err
-	}
-	if err := json.Unmarshal([]byte(blocksJSON), &post.Blocks); err != nil {
 		return err
 	}
 

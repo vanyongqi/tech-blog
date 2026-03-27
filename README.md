@@ -129,14 +129,21 @@ docker compose up -d --build
 - 生产环境建议把 `BLOG_ADMIN_COOKIE_SECURE` 设为 `true`，并放在 HTTPS 之后。
 - `.env` 已加入 `.gitignore`，不要把真实密码和密钥提交到仓库。
 
+## 自动部署
+
+- 当前线上实际流程是：推送 `main` 后，GitHub Actions 负责测试、构建并推送 GHCR 镜像；云服务器通过定时任务轮询 GHCR，发现新镜像后自动重建容器。
+- 线上部署说明见 [deploy/README.md](/Users/fitz/personal/blog/deploy/README.md)。
+- 当前线上不是 GitHub Actions 直接 SSH 到服务器，而是服务器侧主动拉取 `ghcr.io/vanyongqi/tech-blog:latest`。
+
 ## 生产部署建议
 
 - 本地开发先使用 SQLite。
 - 部署到云服务器时，博客文章、评论、点赞建议迁移到 MySQL。
 - 当前 DAO 已经抽出仓储接口，后续新增 MySQL Repository 即可平滑替换。
 - 如果前端执行 `npm run build`，可以把 `frontend/dist` 作为 `FRONTEND_DIST` 交给后端统一托管。
+- 如果要调整自动部署策略，例如改成 GitHub Actions 主动 SSH 部署，可以在当前 GHCR 发布链路上继续扩展。
 
 ## 当前限制
 
-- 这台机器当前没有 `go`、`node`、`npm` 命令，当前提交只能做静态层面的代码检查，无法直接在本地执行构建和测试。
+- 这台机器当前缺少 `docker` 命令，无法在本地执行容器级验证；容器发布和线上更新需要依赖 GitHub Actions 与云服务器环境。
 - 游客匿名名依赖请求链路中的 `IP + User-Agent`，当用户换网络、换浏览器或经过代理时，匿名名可能变化。

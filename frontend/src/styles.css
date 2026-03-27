@@ -351,6 +351,7 @@ button {
 .archive-grid-simple {
   grid-template-columns: 1fr;
   gap: 0;
+  padding-inline: 12px;
 }
 
 .post-card,
@@ -375,6 +376,12 @@ button {
 
 .post-card-link:hover {
   background: rgba(20, 35, 29, 0.025);
+}
+
+.content-empty-card {
+  padding: 18px 0 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-soft);
 }
 
 .post-card-topline,
@@ -728,7 +735,6 @@ button {
   font-size: 0.82rem;
 }
 
-.post-hero blockquote,
 .post-body blockquote {
   margin: 28px 0 0;
   padding-left: 18px;
@@ -742,19 +748,82 @@ button {
 .post-body h2 {
   margin: 34px 0 12px;
   font-family: "Songti SC", "STSong", "Noto Serif CJK SC", serif;
-  font-size: 1.9rem;
-  line-height: 1.2;
+  font-size: clamp(1.26rem, 1.6vw, 1.42rem);
+  line-height: 1.34;
 }
 
 .post-body p,
-.post-body ul {
+.post-body ul,
+.post-body ol {
   font-size: 1.05rem;
 }
 
-.post-body ul {
+.post-body ul,
+.post-body ol {
   padding-left: 24px;
   line-height: 1.9;
   color: var(--ink-soft);
+}
+
+.markdown-image {
+  display: block;
+  max-width: min(100%, 640px);
+  margin: 20px auto;
+  border-radius: 18px;
+  box-shadow: 0 16px 36px rgba(20, 35, 29, 0.08);
+}
+
+.markdown-image-size-sm {
+  max-width: 180px;
+}
+
+.markdown-image-size-md {
+  max-width: 300px;
+}
+
+.markdown-image-size-lg {
+  max-width: 420px;
+}
+
+.markdown-image-size-full {
+  width: 100%;
+  max-width: 100%;
+}
+
+.markdown-image-align-left {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.markdown-image-align-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.markdown-image-align-right {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.post-body pre {
+  overflow-x: auto;
+  margin: 20px 0;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(20, 35, 29, 0.94);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.post-body code {
+  font-family: "IBM Plex Mono", "SFMono-Regular", monospace;
+  font-size: 0.94em;
+}
+
+.post-body :not(pre) > code {
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(20, 35, 29, 0.08);
+  color: var(--ink);
 }
 
 .comment-section {
@@ -836,6 +905,10 @@ button {
   color: var(--ink-soft);
 }
 
+.form-success {
+  color: var(--forest);
+}
+
 .comment-card p {
   margin: 0;
   line-height: 1.8;
@@ -851,6 +924,10 @@ button {
 }
 
 .form-error {
+  font-size: 0.86rem;
+}
+
+.form-success {
   font-size: 0.86rem;
 }
 
@@ -897,6 +974,10 @@ button {
 }
 
 .form-error {
+  margin: 16px 0 0;
+}
+
+.form-success {
   margin: 16px 0 0;
 }
 
@@ -961,6 +1042,18 @@ button {
   color: var(--ink-soft);
 }
 
+.admin-field-hint {
+  margin: -4px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.76rem;
+  line-height: 1.42;
+  opacity: 0.84;
+}
+
+.admin-field-hint code {
+  font-size: 0.78em;
+}
+
 .admin-login-form input,
 .admin-editor-form input,
 .admin-editor-form textarea,
@@ -996,25 +1089,70 @@ button {
 }
 
 .admin-shell {
-  display: grid;
-  grid-template-columns: 320px 1fr;
+  position: relative;
   min-height: 100vh;
-  gap: 18px;
   padding: 18px;
 }
 
+.admin-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 35, 29, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+  z-index: 20;
+}
+
+.admin-sidebar-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .admin-sidebar {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  bottom: 18px;
+  width: min(320px, calc(100vw - 36px));
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 28px;
+  justify-content: flex-start;
+  gap: 18px;
+  padding: 24px;
   border-radius: 32px;
+  transform: translateX(calc(-100% - 24px));
+  transition: transform 180ms ease;
+  z-index: 30;
+  overflow-y: auto;
+}
+
+.admin-sidebar.active {
+  transform: translateX(0);
+}
+
+.admin-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.admin-sidebar-close,
+.admin-drawer-toggle {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
 }
 
 .admin-nav {
   display: grid;
   gap: 12px;
-  margin-top: 24px;
+  margin-top: 0;
 }
 
 .admin-nav button {
@@ -1031,6 +1169,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 18px;
+  min-width: 0;
 }
 
 .admin-topbar {
@@ -1039,6 +1178,12 @@ button {
   align-items: center;
   padding: 18px 22px;
   border-radius: 24px;
+}
+
+.admin-topbar-leading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .admin-panel {
@@ -1091,16 +1236,20 @@ button {
 .admin-post-list {
   display: grid;
   gap: 16px;
+  padding-inline: 12px;
 }
 
 .admin-post-card h3 {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.12rem;
+  line-height: 1.35;
 }
 
 .admin-post-card p {
   color: var(--ink-soft);
-  line-height: 1.8;
+  margin: 8px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.7;
 }
 
 .admin-post-meta {
@@ -1108,13 +1257,15 @@ button {
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 14px;
+  font-size: 0.82rem;
 }
 
 .status-pill {
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 999px;
   background: rgba(20, 35, 29, 0.06);
   color: var(--ink-soft);
+  font-size: 0.78rem;
 }
 
 .status-pill.active {
@@ -1132,15 +1283,104 @@ button {
   margin-top: 12px;
 }
 
-.checkbox-row {
+.admin-feature-card {
   display: flex;
+  justify-content: space-between;
+  gap: 24px;
   align-items: center;
-  gap: 10px;
-  color: var(--ink);
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.56);
 }
 
-.checkbox-row input {
-  width: auto;
+.admin-feature-card.active {
+  border-color: rgba(39, 89, 76, 0.22);
+  background: linear-gradient(135deg, rgba(39, 89, 76, 0.08), rgba(255, 255, 255, 0.82));
+}
+
+.admin-feature-copy h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.admin-feature-copy p:last-child {
+  margin: 8px 0 0;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+
+.admin-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+.admin-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.admin-switch-track {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  border-radius: 999px;
+  background: rgba(20, 35, 29, 0.16);
+  transition: background-color 160ms ease;
+}
+
+.admin-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(20, 35, 29, 0.18);
+  transition: transform 160ms ease;
+}
+
+.admin-switch input:checked + .admin-switch-track {
+  background: rgba(39, 89, 76, 0.76);
+}
+
+.admin-switch input:checked + .admin-switch-track .admin-switch-thumb {
+  transform: translateX(22px);
+}
+
+.admin-switch-label {
+  min-width: 3.5rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.admin-markdown-editor {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-markdown-textarea {
+  min-height: 420px;
+  resize: vertical;
+  font-family: "IBM Plex Mono", "SFMono-Regular", monospace;
+  line-height: 1.7;
+}
+
+.admin-markdown-preview-card {
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.post-body-preview {
+  margin-top: 0;
 }
 
 @keyframes rise {
@@ -1207,8 +1447,12 @@ button {
     padding: 20px;
   }
 
-  .admin-shell {
-    grid-template-columns: 1fr;
+  .admin-feature-card {
+    display: block;
+  }
+
+  .admin-switch {
+    margin-top: 16px;
   }
 
   .hero-copy h1 {

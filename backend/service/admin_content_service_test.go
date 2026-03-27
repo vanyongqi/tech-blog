@@ -13,25 +13,21 @@ func TestAdminContentServiceCreatePost(t *testing.T) {
 
 	post, err := svc.CreatePost(context.Background(), model.CreatePostInput{
 		Post: model.Post{
-			Slug:        "new-admin-post",
 			Title:       "后台新建文章",
 			Summary:     "通过管理后台创建的新文章。",
 			Category:    "Product",
 			ReadTime:    "4 分钟",
-			HeroNote:    "让内容维护进入日常流程。",
 			CoverLabel:  "后台内容",
+			ContentMarkdown: "# 新文章\n\n这是一段新内容。",
 			Tags:        []string{"Admin", "React"},
 			PublishedAt: time.Date(2026, 3, 26, 0, 0, 0, 0, time.UTC),
-			Blocks: []model.ContentBlock{
-				{Kind: "paragraph", Text: "这是一段新内容。"},
-			},
 		},
 	})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if post.Slug != "new-admin-post" {
-		t.Fatalf("expected slug new-admin-post, got %q", post.Slug)
+	if post.Slug == "" {
+		t.Fatal("expected generated slug")
 	}
 }
 
@@ -40,12 +36,13 @@ func TestAdminContentServiceValidatesPost(t *testing.T) {
 
 	_, err := svc.CreatePost(context.Background(), model.CreatePostInput{
 		Post: model.Post{
-			Slug:        "Bad Slug",
-			Title:       "",
-			Summary:     "",
-			Category:    "",
-			ReadTime:    "",
-			PublishedAt: time.Time{},
+			Slug:            "Bad Slug",
+			Title:           "",
+			Summary:         "",
+			Category:        "",
+			ReadTime:        "",
+			ContentMarkdown: "",
+			PublishedAt:     time.Time{},
 		},
 	})
 	if err != ErrPostSlugInvalid {
@@ -65,14 +62,11 @@ func TestAdminContentServiceUpdateAndDeletePost(t *testing.T) {
 			Summary:     "更新后的摘要。",
 			Category:    "Engineering",
 			ReadTime:    "9 分钟",
-			HeroNote:    "更新后的引导语。",
 			CoverLabel:  "系统设计",
+			ContentMarkdown: "## 更新后的正文\n\n这里是新的 Markdown 内容。",
 			Tags:        []string{"Golang"},
 			Featured:    true,
 			PublishedAt: time.Date(2026, 3, 18, 0, 0, 0, 0, time.UTC),
-			Blocks: []model.ContentBlock{
-				{Kind: "paragraph", Text: "更新后的正文。"},
-			},
 		},
 	})
 	if err != nil {
@@ -84,5 +78,23 @@ func TestAdminContentServiceUpdateAndDeletePost(t *testing.T) {
 
 	if err := svc.DeletePost(ctx, model.DeletePostInput{Slug: updated.Slug}); err != nil {
 		t.Fatalf("unexpected delete error: %v", err)
+	}
+}
+
+func TestAdminContentServiceCreateAsset(t *testing.T) {
+	svc := NewAdminContentService(newStubRepository())
+
+	asset, err := svc.CreateAsset(context.Background(), model.CreateAssetInput{
+		Asset: model.Asset{
+			Filename: "diagram.png",
+			MimeType: "image/png",
+			Data:     []byte("fake-image-data"),
+		},
+	})
+	if err != nil {
+		t.Fatalf("unexpected asset error: %v", err)
+	}
+	if asset.ID == 0 {
+		t.Fatal("expected asset id to be generated")
 	}
 }

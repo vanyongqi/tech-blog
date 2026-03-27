@@ -14,14 +14,6 @@ type AdminLoginResponse struct {
 	Session AdminSessionPayload `json:"session"`
 }
 
-type AdminContentBlock struct {
-	Kind  string   `json:"kind"`
-	Title string   `json:"title,omitempty"`
-	Text  string   `json:"text,omitempty"`
-	URL   string   `json:"url,omitempty"`
-	Items []string `json:"items,omitempty"`
-}
-
 type AdminPostSummaryPayload struct {
 	Slug         string   `json:"slug"`
 	Title        string   `json:"title"`
@@ -42,12 +34,11 @@ type AdminPostPayload struct {
 	Summary      string              `json:"summary"`
 	Category     string              `json:"category"`
 	ReadTime     string              `json:"readTime"`
-	HeroNote     string              `json:"heroNote"`
 	CoverLabel   string              `json:"coverLabel"`
+	ContentMarkdown string           `json:"contentMarkdown"`
 	Tags         []string            `json:"tags"`
 	Featured     bool                `json:"featured"`
 	PublishedAt  string              `json:"publishedAt"`
-	Blocks       []AdminContentBlock `json:"blocks"`
 	LikeCount    int                 `json:"likeCount"`
 	CommentCount int                 `json:"commentCount"`
 }
@@ -58,12 +49,11 @@ type AdminSavePostRequest struct {
 	Summary     string              `json:"summary"`
 	Category    string              `json:"category"`
 	ReadTime    string              `json:"readTime"`
-	HeroNote    string              `json:"heroNote"`
 	CoverLabel  string              `json:"coverLabel"`
+	ContentMarkdown string          `json:"contentMarkdown"`
 	Tags        []string            `json:"tags"`
 	Featured    bool                `json:"featured"`
 	PublishedAt string              `json:"publishedAt"`
-	Blocks      []AdminContentBlock `json:"blocks"`
 }
 
 type AdminPostsResponse struct {
@@ -72,6 +62,13 @@ type AdminPostsResponse struct {
 
 type AdminPostResponse struct {
 	Post AdminPostPayload `json:"post"`
+}
+
+type AdminAssetUploadResponse struct {
+	ID       int64  `json:"id"`
+	Filename string `json:"filename"`
+	URL      string `json:"url"`
+	Markdown string `json:"markdown"`
 }
 
 type AdminProjectPayload struct {

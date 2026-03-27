@@ -25,6 +25,10 @@ type DeletePostInput struct {
 	Slug string
 }
 
+type CreateAssetInput struct {
+	Asset Asset
+}
+
 type CreateProjectInput struct {
 	Project Project
 }

@@ -8,10 +8,10 @@ export function PageShell({ children }: { children?: ReactNode }) {
       <div className="ambient ambient-right" />
       <header className="site-header">
         <Link className="brand" to="/">
-          <span className="brand-mark">F</span>
+          <span className="brand-mark">V</span>
           <span>
-            Fite
-            <small>Backend Systems Notebook</small>
+            Vanyongqi
+            <small>Blog</small>
           </span>
         </Link>
         <nav className="site-nav">

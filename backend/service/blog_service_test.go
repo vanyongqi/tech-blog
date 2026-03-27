@@ -170,8 +170,8 @@ func TestBlogServiceReadOnlyLists(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error getting site profile: %v", err)
 	}
-	if site.Name != "Fitz" {
-		t.Fatalf("expected site name Fitz, got %q", site.Name)
+	if site.Name != "Vanyongqi" {
+		t.Fatalf("expected site name Vanyongqi, got %q", site.Name)
 	}
 
 	projects, err := svc.ListProjects(ctx)
@@ -197,6 +197,7 @@ type stubRepository struct {
 	likes    map[string]map[string]bool
 	projects []model.Project
 	videos   []model.Video
+	assets   []model.Asset
 }
 
 func newStubRepository() *stubRepository {
@@ -214,7 +215,7 @@ func newStubRepository() *stubRepository {
 }
 
 func (r *stubRepository) GetSiteProfile(context.Context) (model.SiteProfile, error) {
-	return model.SiteProfile{Name: "Fitz"}, nil
+	return model.SiteProfile{Name: "Vanyongqi"}, nil
 }
 
 func (r *stubRepository) ListPosts(context.Context) ([]model.Post, error) {
@@ -402,4 +403,20 @@ func (r *stubRepository) ToggleLike(_ context.Context, input model.ToggleLikeInp
 	}
 	r.likes[input.Slug][input.VisitorID] = true
 	return model.LikeState{LikeCount: len(r.likes[input.Slug]), Liked: true}, nil
+}
+
+func (r *stubRepository) CreateAsset(_ context.Context, asset model.Asset) (model.Asset, error) {
+	asset.ID = int64(len(r.assets) + 1)
+	asset.CreatedAt = time.Now().UTC()
+	r.assets = append(r.assets, asset)
+	return asset, nil
+}
+
+func (r *stubRepository) GetAssetByID(_ context.Context, id int64) (model.Asset, error) {
+	for _, asset := range r.assets {
+		if asset.ID == id {
+			return asset, nil
+		}
+	}
+	return model.Asset{}, dao.ErrAssetNotFound
 }

@@ -3,6 +3,7 @@ import type {
   AdminPostsResponse,
   AdminProjectResponse,
   AdminProjectsResponse,
+  AdminAssetUploadResponse,
   AdminSaveProjectRequest,
   AdminSavePostRequest,
   AdminSaveVideoRequest,
@@ -21,7 +22,7 @@ const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
-  if (init?.body !== undefined && !headers.has("Content-Type")) {
+  if (init?.body !== undefined && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -117,6 +118,39 @@ export function updateAdminPost(slug: string, payload: AdminSavePostRequest) {
 export function deleteAdminPost(slug: string) {
   return request<void>(`/api/admin/posts/${slug}`, {
     method: "DELETE",
+  });
+}
+
+export async function uploadAdminPostAsset(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return request<AdminAssetUploadResponse>("/api/admin/assets", {
+    method: "POST",
+    body: formData,
+    headers: undefined,
+  });
+}
+
+export async function uploadAdminProjectAsset(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return request<AdminAssetUploadResponse>("/api/admin/assets", {
+    method: "POST",
+    body: formData,
+    headers: undefined,
+  });
+}
+
+export async function uploadAdminVideoAsset(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return request<AdminAssetUploadResponse>("/api/admin/assets", {
+    method: "POST",
+    body: formData,
+    headers: undefined,
   });
 }
 

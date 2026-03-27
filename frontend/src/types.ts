@@ -27,7 +27,6 @@ export interface PostSummaryPayload {
   summary: string;
   category: string;
   readTime: string;
-  heroNote: string;
   coverLabel: string;
   tags: string[];
   featured: boolean;
@@ -36,16 +35,8 @@ export interface PostSummaryPayload {
   commentCount: number;
 }
 
-export interface ContentBlock {
-  kind: "paragraph" | "heading" | "quote" | "list" | "video";
-  title?: string;
-  text?: string;
-  url?: string;
-  items?: string[];
-}
-
 export interface PostDetailPayload extends PostSummaryPayload {
-  blocks: ContentBlock[];
+  contentMarkdown: string;
   likedByVisitor: boolean;
   comments: CommentPayload[];
 }
@@ -109,14 +100,6 @@ export interface PostResponse {
   visitor: VisitorPayload;
 }
 
-export interface AdminContentBlock {
-  kind: string;
-  title?: string;
-  text?: string;
-  url?: string;
-  items?: string[];
-}
-
 export interface AdminPostSummaryPayload {
   slug: string;
   title: string;
@@ -137,12 +120,11 @@ export interface AdminPostPayload {
   summary: string;
   category: string;
   readTime: string;
-  heroNote: string;
   coverLabel: string;
+  contentMarkdown: string;
   tags: string[];
   featured: boolean;
   publishedAt: string;
-  blocks: AdminContentBlock[];
   likeCount: number;
   commentCount: number;
 }
@@ -153,12 +135,18 @@ export interface AdminSavePostRequest {
   summary: string;
   category: string;
   readTime: string;
-  heroNote: string;
   coverLabel: string;
+  contentMarkdown: string;
   tags: string[];
   featured: boolean;
   publishedAt: string;
-  blocks: AdminContentBlock[];
+}
+
+export interface AdminAssetUploadResponse {
+  id: number;
+  filename: string;
+  url: string;
+  markdown: string;
 }
 
 export interface CommentResponse {

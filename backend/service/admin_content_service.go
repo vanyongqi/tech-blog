@@ -3,23 +3,27 @@ package service
 import (
 	"context"
 	"errors"
+	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
 	"personal/blog/backend/dao"
 	"personal/blog/backend/model"
 )
 
 var (
-	ErrPostSlugRequired       = errors.New("post slug is required")
 	ErrPostSlugInvalid        = errors.New("post slug must contain lowercase letters, numbers or hyphens")
 	ErrPostTitleRequired      = errors.New("post title is required")
 	ErrPostSummaryRequired    = errors.New("post summary is required")
 	ErrPostCategoryRequired   = errors.New("post category is required")
 	ErrPostReadTimeRequired   = errors.New("post read time is required")
 	ErrPostPublishedAtInvalid = errors.New("post published date is invalid")
-	ErrPostBlocksRequired     = errors.New("post content blocks are required")
+	ErrPostContentMarkdownRequired = errors.New("post markdown content is required")
 	ErrDuplicatePostSlug      = errors.New("post slug already exists")
+	ErrAssetFileRequired      = errors.New("image file is required")
+	ErrAssetMimeTypeInvalid   = errors.New("only image uploads are supported")
 )
 
 var slugPattern = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
@@ -48,7 +52,7 @@ func (s *AdminContentService) GetPost(ctx context.Context, input model.GetPostIn
 }
 
 func (s *AdminContentService) CreatePost(ctx context.Context, input model.CreatePostInput) (model.Post, error) {
-	post, err := normalizeAdminPost(input.Post)
+	post, err := normalizeAdminPost(input.Post, "")
 	if err != nil {
 		return model.Post{}, err
 	}
@@ -64,7 +68,7 @@ func (s *AdminContentService) CreatePost(ctx context.Context, input model.Create
 }
 
 func (s *AdminContentService) UpdatePost(ctx context.Context, input model.UpdatePostInput) (model.Post, error) {
-	post, err := normalizeAdminPost(input.Post)
+	post, err := normalizeAdminPost(input.Post, strings.TrimSpace(input.CurrentSlug))
 	if err != nil {
 		return model.Post{}, err
 	}
@@ -94,17 +98,28 @@ func (s *AdminContentService) DeletePost(ctx context.Context, input model.Delete
 	return nil
 }
 
-func normalizeAdminPost(post model.Post) (model.Post, error) {
+func (s *AdminContentService) CreateAsset(ctx context.Context, input model.CreateAssetInput) (model.Asset, error) {
+	asset, err := normalizeAdminAsset(input.Asset)
+	if err != nil {
+		return model.Asset{}, err
+	}
+	return s.repository.CreateAsset(ctx, asset)
+}
+
+func normalizeAdminPost(post model.Post, fallbackSlug string) (model.Post, error) {
 	post.Slug = strings.TrimSpace(post.Slug)
 	post.Title = strings.TrimSpace(post.Title)
 	post.Summary = strings.TrimSpace(post.Summary)
 	post.Category = strings.TrimSpace(post.Category)
 	post.ReadTime = strings.TrimSpace(post.ReadTime)
-	post.HeroNote = strings.TrimSpace(post.HeroNote)
 	post.CoverLabel = strings.TrimSpace(post.CoverLabel)
+	post.ContentMarkdown = strings.TrimSpace(post.ContentMarkdown)
 
 	if post.Slug == "" {
-		return model.Post{}, ErrPostSlugRequired
+		post.Slug = strings.TrimSpace(fallbackSlug)
+	}
+	if post.Slug == "" {
+		post.Slug = generatePostSlug()
 	}
 	if !slugPattern.MatchString(post.Slug) {
 		return model.Post{}, ErrPostSlugInvalid
@@ -124,14 +139,36 @@ func normalizeAdminPost(post model.Post) (model.Post, error) {
 	if post.PublishedAt.IsZero() {
 		return model.Post{}, ErrPostPublishedAtInvalid
 	}
-
-	post.Tags = normalizeTags(post.Tags)
-	post.Blocks = normalizeBlocks(post.Blocks)
-	if len(post.Blocks) == 0 {
-		return model.Post{}, ErrPostBlocksRequired
+	if post.ContentMarkdown == "" {
+		return model.Post{}, ErrPostContentMarkdownRequired
 	}
 
+	post.Tags = normalizeTags(post.Tags)
+
 	return post, nil
+}
+
+func normalizeAdminAsset(asset model.Asset) (model.Asset, error) {
+	asset.Filename = strings.TrimSpace(asset.Filename)
+	asset.MimeType = strings.TrimSpace(asset.MimeType)
+
+	if len(asset.Data) == 0 {
+		return model.Asset{}, ErrAssetFileRequired
+	}
+	if asset.MimeType == "" {
+		asset.MimeType = http.DetectContentType(asset.Data)
+	}
+	if !strings.HasPrefix(asset.MimeType, "image/") {
+		return model.Asset{}, ErrAssetMimeTypeInvalid
+	}
+	if asset.Filename == "" {
+		asset.Filename = "image"
+	}
+	return asset, nil
+}
+
+func generatePostSlug() string {
+	return "post-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 }
 
 func normalizeTags(tags []string) []string {
@@ -141,47 +178,6 @@ func normalizeTags(tags []string) []string {
 		if normalized == "" {
 			continue
 		}
-		result = append(result, normalized)
-	}
-	return result
-}
-
-func normalizeBlocks(blocks []model.ContentBlock) []model.ContentBlock {
-	result := make([]model.ContentBlock, 0, len(blocks))
-	for _, block := range blocks {
-		normalized := model.ContentBlock{
-			Kind:  strings.TrimSpace(block.Kind),
-			Title: strings.TrimSpace(block.Title),
-			Text:  strings.TrimSpace(block.Text),
-			URL:   strings.TrimSpace(block.URL),
-		}
-
-		if normalized.Kind == "" {
-			continue
-		}
-
-		if len(block.Items) > 0 {
-			items := make([]string, 0, len(block.Items))
-			for _, item := range block.Items {
-				trimmed := strings.TrimSpace(item)
-				if trimmed == "" {
-					continue
-				}
-				items = append(items, trimmed)
-			}
-			normalized.Items = items
-		}
-
-		if normalized.Kind == "list" && len(normalized.Items) == 0 {
-			continue
-		}
-		if normalized.Kind == "video" && normalized.URL == "" {
-			continue
-		}
-		if normalized.Kind != "list" && normalized.Kind != "video" && normalized.Text == "" && normalized.Title == "" {
-			continue
-		}
-
 		result = append(result, normalized)
 	}
 	return result

@@ -10,6 +10,7 @@ import (
 var ErrPostNotFound = errors.New("post not found")
 var ErrProjectNotFound = errors.New("project not found")
 var ErrVideoNotFound = errors.New("video not found")
+var ErrAssetNotFound = errors.New("asset not found")
 
 type BlogRepository interface {
 	GetSiteProfile(ctx context.Context) (model.SiteProfile, error)
@@ -31,4 +32,6 @@ type BlogRepository interface {
 	ListTimeline(ctx context.Context) ([]model.TimelineEntry, error)
 	CreateComment(ctx context.Context, input model.CreateCommentInput) (model.Comment, error)
 	ToggleLike(ctx context.Context, input model.ToggleLikeInput) (model.LikeState, error)
+	CreateAsset(ctx context.Context, asset model.Asset) (model.Asset, error)
+	GetAssetByID(ctx context.Context, id int64) (model.Asset, error)
 }
