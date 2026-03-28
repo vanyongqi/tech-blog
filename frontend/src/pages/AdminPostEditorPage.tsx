@@ -1,6 +1,7 @@
 import type { ChangeEvent, ClipboardEvent, DragEvent, FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { AdminSaveNoticeBanner } from "../components/AdminSaveNoticeBanner";
 import { useAdminSessionContext } from "../components/AdminShell";
 import { MarkdownContent } from "../components/MarkdownContent";
 import { createAdminPost, getAdminPost, updateAdminPost, uploadAdminPostAsset } from "../lib/api";
@@ -241,6 +242,8 @@ export function AdminPostEditorPage() {
 
   return (
     <section className="admin-panel">
+      {saveNotice ? <AdminSaveNoticeBanner notice={saveNotice} onDismiss={() => setSaveNotice(null)} /> : null}
+
       <div className="admin-panel-heading">
         <div>
           <p className="eyebrow">Editor</p>
@@ -354,7 +357,6 @@ export function AdminPostEditorPage() {
         </section>
 
         {error ? <p className="form-error">{error}</p> : null}
-        {saveNotice ? <p className={saveNotice.type === "success" ? "form-success" : "form-error"}>{saveNotice.message}</p> : null}
 
         <div className="admin-editor-actions">
           <button type="submit" className="primary-link" disabled={saving || uploading}>

@@ -1,0 +1,52 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="900" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8F4ED"/>
+      <stop offset="1" stop-color="#E8DED1"/>
+    </linearGradient>
+    <linearGradient id="flowA" x1="486" y1="364" x2="1114" y2="364" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C8602F"/>
+      <stop offset="1" stop-color="#E0A14E"/>
+    </linearGradient>
+    <linearGradient id="flowB" x1="486" y1="504" x2="1114" y2="504" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#27594C"/>
+      <stop offset="1" stop-color="#18372F"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" rx="32" fill="url(#bg)"/>
+  <circle cx="140" cy="766" r="200" fill="#27594C" fill-opacity="0.08"/>
+  <circle cx="1446" cy="144" r="180" fill="#C8602F" fill-opacity="0.10"/>
+  <rect x="84" y="74" width="1432" height="752" rx="28" fill="#FFFEFC" stroke="#D8CEC1" stroke-width="2"/>
+
+  <text x="130" y="178" fill="#14231D" font-size="74" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">从 ClickHouse 到 Doris</text>
+  <text x="136" y="242" fill="#56645E" font-size="26" font-family="PingFang SC, Microsoft YaHei, sans-serif">分析链路迁移</text>
+
+  <rect x="242" y="322" width="244" height="92" rx="24" fill="#14231D"/>
+  <text x="298" y="378" fill="#FFFFFF" font-size="30" font-family="IBM Plex Mono, monospace" font-weight="700">SOURCE</text>
+
+  <rect x="1114" y="322" width="244" height="92" rx="24" fill="#17342E"/>
+  <text x="1172" y="378" fill="#FFFFFF" font-size="30" font-family="IBM Plex Mono, monospace" font-weight="700">TARGET</text>
+
+  <path d="M486 368C652 368 730 320 844 320C958 320 1042 368 1114 368" stroke="url(#flowA)" stroke-width="34" stroke-linecap="round"/>
+  <path d="M486 368C640 368 738 516 846 516C954 516 1030 368 1114 368" stroke="url(#flowB)" stroke-width="26" stroke-linecap="round"/>
+
+  <circle cx="658" cy="344" r="11" fill="#F7F3EB"/>
+  <circle cx="844" cy="320" r="11" fill="#F7F3EB"/>
+  <circle cx="980" cy="350" r="11" fill="#F7F3EB"/>
+  <circle cx="706" cy="462" r="10" fill="#F7F3EB"/>
+  <circle cx="846" cy="516" r="10" fill="#F7F3EB"/>
+  <circle cx="972" cy="454" r="10" fill="#F7F3EB"/>
+
+  <rect x="208" y="594" width="260" height="58" rx="18" fill="#FFF5EF" stroke="#C8602F" stroke-width="2"/>
+  <text x="280" y="631" fill="#C8602F" font-size="22" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">Cold</text>
+
+  <rect x="510" y="594" width="260" height="58" rx="18" fill="#F6FBF9" stroke="#27594C" stroke-width="2"/>
+  <text x="584" y="631" fill="#27594C" font-size="22" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">Hot</text>
+
+  <rect x="812" y="594" width="260" height="58" rx="18" fill="#FFF9F0" stroke="#9C7A2A" stroke-width="2"/>
+  <text x="882" y="631" fill="#9C7A2A" font-size="22" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">Cutover</text>
+
+  <rect x="1114" y="594" width="260" height="58" rx="18" fill="#F8F7F4" stroke="#8B7F76" stroke-width="2"/>
+  <text x="1178" y="631" fill="#4B5853" font-size="22" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">Redesign</text>
+</svg>

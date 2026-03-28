@@ -1,0 +1,50 @@
+<svg width="1600" height="940" viewBox="0 0 1600 940" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="940" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7F4EE"/>
+      <stop offset="1" stop-color="#ECE4D8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="940" rx="32" fill="url(#bg)"/>
+  <rect x="84" y="74" width="1432" height="792" rx="28" fill="#FFFEFC" stroke="#D8CEC1" stroke-width="2"/>
+
+  <text x="118" y="142" fill="#14231D" font-size="42" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">Figure 2 · DDL Redesign</text>
+  <line x1="800" y1="208" x2="800" y2="820" stroke="#D8CEC1" stroke-width="2" stroke-dasharray="10 10"/>
+
+  <text x="140" y="220" fill="#C8602F" font-size="28" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">Phase A</text>
+  <text x="840" y="220" fill="#27594C" font-size="28" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">Phase B</text>
+
+  <g font-family="PingFang SC, Microsoft YaHei, sans-serif">
+    <rect x="132" y="278" width="596" height="120" rx="18" fill="#FFF5EF" stroke="#C8602F" stroke-width="2"/>
+    <text x="172" y="326" fill="#C8602F" font-size="24" font-weight="700">Compatibility</text>
+    <text x="172" y="366" fill="#4E413C" font-size="22">先接住数据</text>
+
+    <rect x="132" y="456" width="596" height="150" rx="18" fill="#FFF9F0" stroke="#9C7A2A" stroke-width="2"/>
+    <text x="172" y="504" fill="#9C7A2A" font-size="24" font-weight="700">Mapping</text>
+    <text x="172" y="544" fill="#4E413C" font-size="22">类型映射</text>
+    <text x="172" y="578" fill="#4E413C" font-size="22">旧承载方式先沿用</text>
+
+    <rect x="132" y="664" width="596" height="120" rx="18" fill="#F8F7F4" stroke="#AFA59A" stroke-width="2"/>
+    <text x="172" y="712" fill="#14231D" font-size="24" font-weight="700">Limit</text>
+    <text x="172" y="752" fill="#4E413C" font-size="22">结构迁移完成，场景优化未完成</text>
+  </g>
+
+  <g font-family="PingFang SC, Microsoft YaHei, sans-serif">
+    <rect x="872" y="278" width="596" height="120" rx="18" fill="#F6FBF9" stroke="#27594C" stroke-width="2"/>
+    <text x="912" y="326" fill="#27594C" font-size="24" font-weight="700">Query-Oriented</text>
+    <text x="912" y="366" fill="#4E413C" font-size="22">让查询路径更顺</text>
+
+    <rect x="872" y="456" width="596" height="184" rx="18" fill="#F5FBF9" stroke="#4F7A72" stroke-width="2"/>
+    <text x="912" y="504" fill="#27594C" font-size="24" font-weight="700">Changes</text>
+    <text x="912" y="544" fill="#4E413C" font-size="22">时间列 + 结果级指纹</text>
+    <text x="912" y="578" fill="#4E413C" font-size="22">更均衡的分布方式</text>
+    <text x="912" y="612" fill="#4E413C" font-size="22">更贴近实体级过滤场景</text>
+
+    <rect x="872" y="698" width="596" height="86" rx="18" fill="#FFF5EF" stroke="#C8602F" stroke-width="2"/>
+    <text x="912" y="752" fill="#C8602F" font-size="24" font-weight="700">Redesign, not translation</text>
+  </g>
+
+  <path d="M728 532L872 532" stroke="#9C7A2A" stroke-width="6" stroke-linecap="round"/>
+  <path d="M872 532L844 506" stroke="#9C7A2A" stroke-width="6" stroke-linecap="round"/>
+  <path d="M872 532L844 558" stroke="#9C7A2A" stroke-width="6" stroke-linecap="round"/>
+</svg>

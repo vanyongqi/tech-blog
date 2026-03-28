@@ -1,0 +1,39 @@
+<svg width="1600" height="940" viewBox="0 0 1600 940" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="940" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7F4EE"/>
+      <stop offset="1" stop-color="#ECE4D8"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="940" rx="32" fill="url(#bg)"/>
+  <rect x="84" y="74" width="1432" height="792" rx="28" fill="#FFFEFC" stroke="#D8CEC1" stroke-width="2"/>
+
+  <text x="118" y="142" fill="#14231D" font-size="42" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">Figure 3 · Validation</text>
+
+  <circle cx="800" cy="470" r="122" fill="#14231D"/>
+  <text x="724" y="462" fill="#F8F4ED" font-size="36" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">Success</text>
+  <text x="746" y="508" fill="#D9D1C7" font-size="22" font-family="PingFang SC, Microsoft YaHei, sans-serif">all four</text>
+
+  <g font-family="PingFang SC, Microsoft YaHei, sans-serif">
+    <rect x="150" y="250" width="430" height="124" rx="18" fill="#FFF5EF" stroke="#C8602F" stroke-width="2"/>
+    <text x="188" y="300" fill="#C8602F" font-size="24" font-weight="700">Count</text>
+    <text x="188" y="340" fill="#4E413C" font-size="22">总量对齐</text>
+
+    <rect x="1020" y="250" width="430" height="124" rx="18" fill="#F6FBF9" stroke="#27594C" stroke-width="2"/>
+    <text x="1058" y="300" fill="#27594C" font-size="24" font-weight="700">Sample</text>
+    <text x="1058" y="340" fill="#4E413C" font-size="22">样本记录对齐</text>
+
+    <rect x="150" y="612" width="430" height="124" rx="18" fill="#FFF9F0" stroke="#9C7A2A" stroke-width="2"/>
+    <text x="188" y="662" fill="#9C7A2A" font-size="24" font-weight="700">Lag</text>
+    <text x="188" y="702" fill="#4E413C" font-size="22">消费位点追平</text>
+
+    <rect x="1020" y="612" width="430" height="124" rx="18" fill="#F8F7F4" stroke="#AFA59A" stroke-width="2"/>
+    <text x="1058" y="662" fill="#14231D" font-size="24" font-weight="700">Traffic</text>
+    <text x="1058" y="702" fill="#4E413C" font-size="22">线上查询切换</text>
+  </g>
+
+  <path d="M580 374L700 430" stroke="#C8602F" stroke-width="6" stroke-linecap="round"/>
+  <path d="M1020 374L900 430" stroke="#27594C" stroke-width="6" stroke-linecap="round"/>
+  <path d="M580 612L700 522" stroke="#9C7A2A" stroke-width="6" stroke-linecap="round"/>
+  <path d="M1020 612L900 522" stroke="#8E837A" stroke-width="6" stroke-linecap="round"/>
+</svg>

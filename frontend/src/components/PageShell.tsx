@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
+import { BrandMark } from "./BrandMark";
 
 export function PageShell({ children }: { children?: ReactNode }) {
   return (
@@ -8,7 +9,9 @@ export function PageShell({ children }: { children?: ReactNode }) {
       <div className="ambient ambient-right" />
       <header className="site-header">
         <Link className="brand" to="/">
-          <span className="brand-mark">V</span>
+          <span className="brand-mark">
+            <BrandMark />
+          </span>
           <span>
             Vanyongqi
             <small>Blog</small>

@@ -1,6 +1,7 @@
 import type { ChangeEvent, FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { AdminSaveNoticeBanner } from "../components/AdminSaveNoticeBanner";
 import { useAdminSessionContext } from "../components/AdminShell";
 import {
   createAdminVideo,
@@ -241,6 +242,8 @@ export function AdminVideoEditorPage() {
 
   return (
     <section className="admin-panel">
+      {saveNotice ? <AdminSaveNoticeBanner notice={saveNotice} onDismiss={() => setSaveNotice(null)} /> : null}
+
       <div className="admin-panel-heading">
         <div>
           <p className="eyebrow">Video Editor</p>
@@ -291,7 +294,6 @@ export function AdminVideoEditorPage() {
         </label>
 
         {error ? <p className="form-error">{error}</p> : null}
-        {saveNotice ? <p className={saveNotice.type === "success" ? "form-success" : "form-error"}>{saveNotice.message}</p> : null}
 
         <div className="admin-editor-actions">
           <button type="submit" className="primary-link" disabled={saving || uploading}>

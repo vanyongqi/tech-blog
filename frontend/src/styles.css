@@ -94,10 +94,14 @@ button {
   place-items: center;
   width: 42px;
   height: 42px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--ember), #f0bb4d);
-  color: #fff;
-  box-shadow: 0 12px 25px rgba(200, 96, 47, 0.3);
+  flex-shrink: 0;
+}
+
+.brand-mark-svg {
+  display: block;
+  width: 42px;
+  height: 42px;
+  filter: drop-shadow(0 12px 25px rgba(20, 35, 29, 0.16));
 }
 
 .site-nav {
@@ -613,6 +617,30 @@ button {
 
 .about-meta {
   margin-top: 12px !important;
+}
+
+.about-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.about-meta-card {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.about-meta-card strong {
+  font-size: 0.94rem;
+}
+
+.about-meta-card span {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
 }
 
 .tag-chip,
@@ -1191,6 +1219,52 @@ button {
   border-radius: 32px;
 }
 
+.admin-save-notice {
+  position: fixed;
+  top: 28px;
+  right: 28px;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(420px, calc(100vw - 32px));
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 36px rgba(20, 35, 29, 0.14);
+}
+
+.admin-save-notice p {
+  flex: 1;
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.admin-save-notice-success {
+  background: rgba(247, 252, 250, 0.96);
+  border-color: rgba(39, 89, 76, 0.24);
+  color: var(--forest);
+}
+
+.admin-save-notice-error {
+  background: rgba(255, 248, 245, 0.96);
+  border-color: rgba(200, 96, 47, 0.24);
+  color: var(--ember);
+}
+
+.admin-save-notice-close {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
 .admin-panel-heading,
 .admin-block-header,
 .admin-post-card-top,
@@ -1447,8 +1521,19 @@ button {
     padding: 20px;
   }
 
+  .admin-save-notice {
+    top: 18px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+  }
+
   .admin-feature-card {
     display: block;
+  }
+
+  .about-meta-grid {
+    grid-template-columns: 1fr;
   }
 
   .admin-switch {

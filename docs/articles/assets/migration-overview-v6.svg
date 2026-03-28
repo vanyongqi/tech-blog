@@ -1,0 +1,69 @@
+<svg width="1600" height="1100" viewBox="0 0 1600 1100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1600" y2="1040" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7F4EE"/>
+      <stop offset="1" stop-color="#ECE4D8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="1100" rx="32" fill="url(#bg)"/>
+  <rect x="84" y="74" width="1432" height="952" rx="28" fill="#FFFEFC" stroke="#D8CEC1" stroke-width="2"/>
+
+  <text x="118" y="142" fill="#14231D" font-size="42" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">Figure 1 · 迁移总流程</text>
+  <text x="118" y="182" fill="#596760" font-size="22" font-family="PingFang SC, Microsoft YaHei, sans-serif">冷数据按天回灌，热数据持续消费，最终以 offset 追平结果完成切流。</text>
+
+  <line x1="800" y1="252" x2="800" y2="962" stroke="#D8CEC1" stroke-width="2" stroke-dasharray="10 10"/>
+
+  <text x="140" y="242" fill="#C8602F" font-size="28" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">冷数据路径</text>
+  <text x="840" y="242" fill="#27594C" font-size="28" font-family="PingFang SC, Microsoft YaHei, sans-serif" font-weight="700">热数据路径</text>
+
+  <g font-family="PingFang SC, Microsoft YaHei, sans-serif">
+    <rect x="132" y="320" width="596" height="132" rx="18" fill="#14231D"/>
+    <text x="170" y="374" fill="#F7F4EE" font-size="22" font-weight="700">历史数据源</text>
+    <text x="170" y="418" fill="#FFFFFF" font-size="30" font-family="IBM Plex Mono, monospace" font-weight="700">ClickHouse</text>
+
+    <rect x="132" y="478" width="596" height="126" rx="18" fill="#FFF5EF" stroke="#C8602F" stroke-width="2"/>
+    <text x="170" y="526" fill="#C8602F" font-size="24" font-weight="700">① 导出 Parquet</text>
+    <text x="170" y="564" fill="#4E413C" font-size="21">先从月切分改成按天切分，缩小单批次范围。</text>
+    <text x="170" y="596" fill="#4E413C" font-size="21">这样出现数量异常时，更容易定位到具体日期。</text>
+
+    <rect x="132" y="644" width="596" height="126" rx="18" fill="#FFF9F0" stroke="#9C7A2A" stroke-width="2"/>
+    <text x="170" y="692" fill="#9C7A2A" font-size="24" font-weight="700">② 上传对象存储</text>
+    <text x="170" y="730" fill="#4E413C" font-size="21">把每天导出的文件先落到对象存储，形成中间态。</text>
+    <text x="170" y="762" fill="#4E413C" font-size="21">失败后可以按天重试，不需要整月全部重来。</text>
+
+    <rect x="132" y="810" width="596" height="126" rx="18" fill="#F6FBF9" stroke="#27594C" stroke-width="2"/>
+    <text x="170" y="858" fill="#27594C" font-size="24" font-weight="700">③ 导入目标表</text>
+    <text x="170" y="896" fill="#4E413C" font-size="21">Doris 从对象存储读取每日文件，分批写入目标表。</text>
+    <text x="170" y="928" fill="#4E413C" font-size="21">这一步更适合做日级对账与补导。</text>
+  </g>
+
+  <g font-family="PingFang SC, Microsoft YaHei, sans-serif">
+    <rect x="872" y="320" width="596" height="132" rx="18" fill="#14231D"/>
+    <text x="910" y="374" fill="#F7F4EE" font-size="22" font-weight="700">实时数据源</text>
+    <text x="910" y="418" fill="#FFFFFF" font-size="30" font-family="IBM Plex Mono, monospace" font-weight="700">Kafka</text>
+
+    <rect x="872" y="478" width="596" height="126" rx="18" fill="#F6FBF9" stroke="#27594C" stroke-width="2"/>
+    <text x="910" y="526" fill="#27594C" font-size="24" font-weight="700">① 持续消费</text>
+    <text x="910" y="564" fill="#4E413C" font-size="21">迁移期间不停车，让新增数据持续写入 Doris。</text>
+    <text x="910" y="596" fill="#4E413C" font-size="21">这样历史回灌和实时接入可以并行推进。</text>
+
+    <rect x="872" y="644" width="596" height="126" rx="18" fill="#FFF5EF" stroke="#C8602F" stroke-width="2"/>
+    <text x="910" y="692" fill="#C8602F" font-size="24" font-weight="700">② 结构校验</text>
+    <text x="910" y="730" fill="#4E413C" font-size="21">重点检查 JSON、数组和层级字段映射是否稳定。</text>
+    <text x="910" y="762" fill="#4E413C" font-size="21">避免数据已经流起来之后才暴露字段错位问题。</text>
+
+    <rect x="872" y="810" width="596" height="126" rx="18" fill="#FFF9F0" stroke="#9C7A2A" stroke-width="2"/>
+    <text x="910" y="858" fill="#9C7A2A" font-size="24" font-weight="700">③ Offset 切换</text>
+    <text x="910" y="896" fill="#4E413C" font-size="21">等实时消费追平后，再以 offset 为边界完成切流。</text>
+    <text x="910" y="928" fill="#4E413C" font-size="21">这样比简单按时间点切换更稳。</text>
+  </g>
+
+  <path d="M430 452L430 478" stroke="#8E837A" stroke-width="4"/>
+  <path d="M430 604L430 644" stroke="#8E837A" stroke-width="4"/>
+  <path d="M430 770L430 810" stroke="#8E837A" stroke-width="4"/>
+
+  <path d="M1170 452L1170 478" stroke="#8E837A" stroke-width="4"/>
+  <path d="M1170 604L1170 644" stroke="#8E837A" stroke-width="4"/>
+  <path d="M1170 770L1170 810" stroke="#8E837A" stroke-width="4"/>
+</svg>
